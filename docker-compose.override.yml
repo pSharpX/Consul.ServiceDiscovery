@@ -1,0 +1,75 @@
+version: '3.6'
+
+networks:
+  sfit/consul: {}
+  sfit/user-profile: {}
+  sfit/assessment-management: {}
+  sfit/track-suggestion: {}
+  sfit/ml-track-recommender: {}
+  sfit/authenticator: {}
+
+secrets:
+  db_user:
+    file: ./docker/secrets/db_user
+  db_password:
+    file: ./docker/secrets/db_password
+
+services:
+  consul-server1:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server1
+    restart: always
+    volumes:
+     - ./consul/server1.json:/consul/config/server1.json:ro
+     - ./consul/certs/:/consul/config/certs/:ro
+    networks:
+      - sfit/consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent -bootstrap-expect=3"
+
+  consul-server2:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server2
+    restart: always
+    volumes:
+     - ./consul/server2.json:/consul/config/server2.json:ro
+     - ./consul/certs/:/consul/config/certs/:ro
+    networks:
+      - sfit/consul
+    command: "agent -bootstrap-expect=3"
+
+  consul-server3:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-server3
+    restart: always
+    volumes:
+     - ./consul/server3.json:/consul/config/server3.json:ro
+     - ./consul/certs/:/consul/config/certs/:ro
+    networks:
+      - sfit/consul
+    command: "agent -bootstrap-expect=3"
+
+  consul-client:
+    image: hashicorp/consul:1.11.2
+    container_name: consul-client
+    restart: always
+    volumes:
+     - ./consul/client.json:/consul/config/client.json:ro
+     - ./consul/certs/:/consul/config/certs/:ro
+    networks:
+     - sfit/consul
+    command: "agent"
+
+  #consul.servicediscovery:
+  #  environment:
+  #    - ASPNETCORE_ENVIRONMENT=Development
+  #    - ASPNETCORE_URLS=https://+:443;http://+:80
+  #  ports:
+  #    - "80"
+  #    - "443"
+  #  volumes:
+  #    - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+  #    - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
